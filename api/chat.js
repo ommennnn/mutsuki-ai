@@ -1,12 +1,11 @@
 import fetch from "node-fetch";
 
 export default async function handler(req, res) {
-  // POSTチェック
   if (req.method !== "POST") {
     return res.status(405).json({ error: "POST only" });
   }
 
-  // JSONパース
+  // JSON パースを安全に
   let body = {};
   try {
     body = await new Promise((resolve, reject) => {
@@ -15,7 +14,7 @@ export default async function handler(req, res) {
       req.on("end", () => resolve(JSON.parse(data)));
       req.on("error", err => reject(err));
     });
-  } catch(e) {
+  } catch (e) {
     return res.status(400).json({ error: "Invalid JSON" });
   }
 
