@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>睦生AIチャット</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center h-screen">
+  <div class="w-full max-w-2xl h-full sm:h-[90vh] flex flex-col bg-white shadow-2xl rounded-2xl overflow-hidden">
+    <header class="bg-gray-800 text-white p-4 flex items-center">
+      <h1 class="text-xl font-bold">睦生AI</h1>
+    </header>
+
+    <main id="chat-container" class="flex-1 p-6 overflow-y-auto bg-gray-50"></main>
+
+    <footer class="p-4 bg-white border-t border-gray-200 flex">
+      <input type="text" id="user-input" class="flex-1 px-4 py-2 border rounded-l-full focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="睦生に話しかける...">
+      <button id="send-button" class="bg-blue-600 text-white px-4 rounded-r-full hover:bg-blue-700">➡️</button>
+    </footer>
+  </div>
+
+  <script>
+    const chatContainer = document.getElementById('chat-container');
+    const userInput = document.getElementById('user-input');
+    const sendButton = document.getElementById('send-button');
+
+    sendButton.addEventListener('click', handleSend);
+    userInput.addEventListener('keydown', (e) => { if(e.key === "Enter") handleSend(); });
+
+    function addMessage(message, sender) {
+      const wrapper = document.createElement('div');
+      wrapper.className = `my-2 flex ${sender==='user'?'justify-end':'justify-start'}`;
+      const bubble = document.createElement('div');
+      bubble.className = `px-4 py-2 rounded-2xl max-w-md ${sender==='user'?'bg-blue-500 text-white':'bg-gray-200 text-gray-900'}`;
+      bubble.textContent = message;
+      wrapper.appendChild(bubble);
+      chatContainer.appendChild(wrapper);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    async function handleSend() {
+      const message = userInput.value.trim();
+      if(!message) return;
+      addMessage(message, 'user');
+      userInput.value = '';
+
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message })
+        });
+        const data = await res.json();
+        addMessage(data.reply, 'ai');
+      } catch(err) {
+        console.error(err);
+        addMessage("サーバーに接続できませんでした。", 'ai');
+      }
+    }
+  </script>
+</body>
+</html>
